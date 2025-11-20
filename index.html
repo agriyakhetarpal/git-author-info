@@ -39,7 +39,7 @@
       body {
         display: flex;
         box-sizing: border-box;
-        max-width: 400px;
+        max-width: 480px;
         padding: 40px 20px 5px 20px;
         margin: 0 auto 0 auto;
         flex-direction: column;
@@ -185,6 +185,13 @@
         background-color: #d8d8d8;
       }
 
+      .copy-buttons-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
       .copy-button {
         background-color: var(--primary-accent-color);
         color: white;
@@ -193,8 +200,8 @@
         border-radius: 4px;
         font-size: 0.9rem;
         cursor: pointer;
-        margin-top: 5px;
         transition: background-color 250ms;
+        flex: 0 1 auto;
       }
 
       .copy-button:hover {

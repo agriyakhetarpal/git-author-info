@@ -45,13 +45,15 @@ async function getUserInfo(username) {
 }
 
 /**
- * Get the email address associated with the user's commits. We employ two strategies:
+ * Get the email addresses associated with the user's commits. We employ two strategies:
  * 1. Check the user's public events for commit data.
  * 2. Check the user's repositories for commits authored by them.
  * @param {string} username - The GitHub username.
- * @returns {Promise<string|null>} - The email address (a real one, not a noreply one), or null if not found.
+ * @returns {Promise<string[]>} - Array of unique email addresses (real ones, not noreply ones).
  */
 async function getCommitEmail(username) {
+  const emails = new Set();
+
   try {
     const response = await fetch(
       `${GITHUB_API}/users/${username}/events/public`
@@ -64,7 +66,7 @@ async function getCommitEmail(username) {
             if (commit.author && commit.author.email) {
               const email = commit.author.email;
               if (!email.includes("noreply.github.com")) {
-                return email;
+                emails.add(email);
               }
             }
           }
@@ -105,7 +107,7 @@ async function getCommitEmail(username) {
             ) {
               const email = commitData.commit.author.email;
               if (!email.includes("noreply.github.com")) {
-                return email;
+                emails.add(email);
               }
             }
           }
@@ -119,7 +121,7 @@ async function getCommitEmail(username) {
     console.error("Failed to fetch repos:", err);
   }
 
-  return null;
+  return Array.from(emails);
 }
 
 function checkInputValidity() {
@@ -209,36 +211,67 @@ async function copyToClipboard(text, button) {
   }
 }
 
-function createResultHTML(userData, commitEmail) {
+function createResultHTML(userData, commitEmails) {
   const name = userData.name || userData.login;
   // Our priority is: commit email > API email > noreply GitHub standard email
-  const email =
-    commitEmail ||
-    userData.email ||
-    `${userData.id}+${userData.login}@users.noreply.github.com`;
-  const isNoreply = !commitEmail && !userData.email;
-  const isFromCommit = !!commitEmail && commitEmail !== userData.email;
+
+  const allEmails = new Set();
+
+  if (commitEmails && commitEmails.length > 0) {
+    commitEmails.forEach((email) => allEmails.add(email));
+  }
+  if (userData.email) {
+    allEmails.add(userData.email);
+  }
+  if (allEmails.size === 0) {
+    allEmails.add(`${userData.id}+${userData.login}@users.noreply.github.com`);
+  }
+
+  const emailsArray = Array.from(allEmails);
+  const isNoreply =
+    emailsArray.length === 1 && emailsArray[0].includes("noreply.github.com");
+  const hasMultiple = emailsArray.length > 1;
 
   let html = `<div class="author-info">`;
   html += `<div class="author-info-line" data-copy="${sanitizeString(
     name
   )}"><strong>Name:</strong> ${sanitizeString(name)}</div>`;
-  html += `<div class="author-info-line" data-copy="${sanitizeString(
-    email
-  )}"><strong>Email:</strong> ${sanitizeString(email)}</div>`;
+
+  if (hasMultiple) {
+    html += `<div style="margin-top: 8px;"><strong>Email${
+      emailsArray.length > 1 ? "s" : ""
+    }:</strong></div>`;
+    emailsArray.forEach((email, index) => {
+      html += `<div class="author-info-line" data-copy="${sanitizeString(
+        email
+      )}" style="margin-left: 10px;">• ${sanitizeString(email)}</div>`;
+    });
+  } else {
+    html += `<div class="author-info-line" data-copy="${sanitizeString(
+      emailsArray[0]
+    )}"><strong>Email:</strong> ${sanitizeString(emailsArray[0])}</div>`;
+  }
+
   html += `</div>`;
 
   if (isNoreply) {
-    html += `<p class="noreply-note">No public email address found from recent commits. Here's their GitHub noreply address.</p>`;
-  } else if (isFromCommit) {
-    html += `<p class="noreply-note">Email address found from recent commits.</p>`;
+    html += `<p class="noreply-note">No public email address was found from recent commits. Here's their GitHub noreply address.</p>`;
+  } else if (commitEmails && commitEmails.length > 0) {
+    html += `<p class="noreply-note">${
+      hasMultiple ? "These email addresses were found" : "This email address was found"
+    } from their recent commits.</p>`;
   }
 
-  html += `<button class="copy-button" data-name="${sanitizeString(
-    name
-  )}" data-email="${sanitizeString(
-    email
-  )}">Copy as "Name &lt;email&gt;"</button>`;
+  html += `<div class="copy-buttons-container">`;
+  emailsArray.forEach((email, index) => {
+    const buttonLabel = hasMultiple
+      ? `Copy #${index + 1} in "Name &lt;email&gt;"; format`
+      : `Copy as "Name &lt;email&gt;"`;
+    html += `<button class="copy-button" data-name="${sanitizeString(
+      name
+    )}" data-email="${sanitizeString(email)}">${buttonLabel}</button>`;
+  });
+  html += `</div>`;
 
   return html;
 }
@@ -247,8 +280,7 @@ async function onSubmit() {
   if (!checkInputValidity()) {
     return;
   }
-  const match = validUsernameRegex.exec(usernameInput.value);
-  const username = match[1];
+  const username = usernameInput.value.trim();
   resetOutputStatus();
   setWorkingStatus();
   let resultString;
@@ -261,14 +293,14 @@ async function onSubmit() {
     setFinishedStatus(false, resultString);
     updateQueryParamsAndTitle(username);
 
-    const copyButton = document.querySelector(".copy-button");
-    if (copyButton) {
-      copyButton.addEventListener("click", () => {
-        const name = copyButton.dataset.name;
-        const email = copyButton.dataset.email;
-        copyToClipboard(`${name} <${email}>`, copyButton);
+    // Add click handlers for all copy buttons
+    document.querySelectorAll(".copy-button").forEach((button) => {
+      button.addEventListener("click", () => {
+        const name = button.dataset.name;
+        const email = button.dataset.email;
+        copyToClipboard(`${name} <${email}>`, button);
       });
-    }
+    });
 
     document.querySelectorAll(".author-info-line").forEach((line) => {
       line.addEventListener("click", () => {
