@@ -1,76 +1,59 @@
-# Next PR Number
+# Git Author Info
 
-Next PR Number is a web tool that allows you to quickly and easily know what number
-your PR will be assigned before opening it. Forget guessing the number or checking
-afterhand.
+Git Author Info is an easy-to-use web tool that allows you to quickly get the Git username and email address for any GitHub user profile.
 
-**Features:**
+> [!NOTE]
+> This tool only works for public GitHub user profiles. Private profiles or users without public activity may not yield results. GHE (GitHub Enterprise) instances are not supported.
 
-- **Sharable URLs that autofill the repository** - Want your project's contributors to
-  use Next PR Number? Give them a link that autofills and queries your repository for
-  them for a seamless experience. [Here's an example.][example]
-- **Lightweight** - Next PR Number is built with pure HTML, JS, CSS. There's no
-  dependencies that slow down page load (except for analytics provided by a self-hosted
-  Plausible instance)
+## Features
 
-In all seriousness, this exists to make changelog entry enforcement easier
-and a smoother experience for everyone. When I maintained [black] and [bandersnatch],
-writing a release changelog takes time, time that could've been better spent elsewhere.
-So a policy was introduced where (substantial) PRs must have an
-changelog entry... and the PR number. While that reduced the administrative workload,
-it merely pushed the workload onto the contributors, who must now get the PR number
-somehow.
+- **Shareable URLs that auto-fill the username** - would you like to share a specific user's info with someone? You can give them a link that auto-fills and queries automatically. [Here's an example for the "@octocat" account](https://agriyakhetarpal.github.io/git-author-info/?username=octocat).
+- **Click to copy** - Click on the name or email to copy individually, or use the button to copy the full `Name <email>` format
+- **Private email handling** - If a user's email is private, the tool automatically displays their GitHub noreply address to you
+- **Multiple email addresses** - If a user has used multiple email addresses in their commits, the tool will try to find and display them all
 
-This website was created to give contributors a fast and painless way to get that PR
-number so they can focus on writing good code.
+## Usage
 
-**Note: Next PR Number only supports public GitHub repositories**
+1. Enter a GitHub username in the input field
+2. Click "Get" or press Enter to fetch the user's info
+3. Copy the name and/or email address as needed by clicking on them or pressing the "Copy as `Name <email>` button
+
+The tool displays:
+
+- **Name**: The user's display name (or their username, if not set)
+- **Email**: The user's public email address, or GitHub noreply address if private
+
+## Why I built this
+
+I often need to find the email addresses of open source contributors for collaboration, outreach, or giving appropriate credit as part of commit messages, such as via the `Co-authored-by` or `Suggested-by` keywords. Instead of manually digging through GitHub profiles and commit histories in repositories, I wanted a quick and easy way to get this information.
 
 ## Privacy statement
 
-Next PR Number to subject to the [privacy statement on my personal website][privacy].
+This tool makes requests directly to GitHub's public API from your browser. No data is collected, stored, or shared with any third parties.
 
 ## Contributing
 
-Contributions of all sorts are welcomed, even feedback if it's constructive! Opening
-an issue to check with me before working on a changeset is highly recommended.
+Contributions of all sorts (bug reports, improvements, feedback) are welcome! Please consider opening an issue to check with me before working on something, or skip it if it's a trivial change.
 
-In terms of technical tips, I recommend that you use Python's built-in webserver to test
-locally while iterating on your changes:
+To test this locally:
 
 ```console
-example-user@example-desktop:~$ cd next-pr-number
-example-user@example-desktop:~/next-pr-number$ python -m http.server 4000
-Serving HTTP on 0.0.0.0 port 4000 (http://0.0.0.0:4000/) ...
+git clone https://github.com/agriyakhetarpal/git-author-info.git
+cd git-author-info
+python -m http.server 4000
 ```
 
-Please note that this project to also my excuse to learn web development. So I'm sure
-I'm doing a ton of things wrong in this project :) I'm open to feedback in this regard
-too.
+Then, open http://localhost:4000 in your browser.
 
-Finally, don't forget to add yourself to the AUTHORS list below. You made a contribution
-and you deserve the thanks!
+## Thanks
 
-### SQLite3 Schema
+The design is highly inspired by [Richard Si's Next PR Number][https://github.com/ichard26/next-pr-number] and [Mariatta Wijaya's "Check Python CLA"](https://github.com/Mariatta/check_python_cla) tools. Thank you so much for sharing your work with the open source community!
 
-```sql
-CREATE TABLE "queries" (
-    "datetime"   TEXT PRIMARY KEY NOT NULL,
-    "owner"      TEXT NOT NULL,
-    "name"       TEXT NOT NULL,
-    "result"     INTEGER NOT NULL
-);
-```
+### Authors
 
-## Authors
+- [Agriya Khetarpal](https://github.com/agriyakhetarpal)
+- add your name here if you contributed!
 
-Glued together by Richard Si ([@ichard26](https://github.com/ichard26)).
+## License
 
-- Jaap Roes
-- Marc Mueller ([@cdce8p](https://github.com/cdce8p))
-- *your name here perhaps?*
-
-[bandersnatch]: https://github.com/pypa/bandersnatch
-[black]: https://github.com/psf/black
-[example]: https://ichard26.github.io/next-pr-number/?owner=ichard26&name=next-pr-number
-[privacy]: https://ichard26.github.io/privacy/
+This project is licensed under the terms of [the MIT License](LICENSE). The original code was written by Richard Si, and is also licensed under the MIT License (see [LICENSE.orig](LICENSE.orig) for details).
