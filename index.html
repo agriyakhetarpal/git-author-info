@@ -221,6 +221,13 @@
         color: #666;
         margin-top: 5px;
         font-style: italic;
+        word-break: normal;
+        overflow-wrap: break-word;
+        hyphens: none;
+      }
+
+      .nowrap {
+        white-space: nowrap;
       }
 
       footer {
@@ -257,7 +264,7 @@
   <body>
     <main>
       <h1>GitHub Author Info</h1>
-      <h2>Get the Git username and email address for any GitHub user profile.</h2>
+      <h2>Quickly get the Git username and email address for any GitHub user profile.</h2>
       <div class="input-form">
         <input class="username-input" placeholder="GitHub username" type="text" autocapitalize="off" autofocus>
         <button class="get-button">Get</button>
