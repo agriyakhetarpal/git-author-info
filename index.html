@@ -5,23 +5,18 @@
 
   <head>
     <meta charset="utf-8">
-    <title>Next PR Number - Forget guessing or checking afterhand</title>
+    <title>Git Author Info: Get the Git username and email for any GitHub user</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Get the number the next pull request will be assigned for a public GitHub repository. Forget guessing the number or checking afterhand.">
-    <meta property="og:title" content="Next PR Number">
-    <meta property="og:description" content="Get the number the next pull request will be assigned for a public GitHub repository. Forget guessing the number or checking afterhand.">
+    <meta name="description" content="Get the Git username and email address for any GitHub user. Enter a GitHub username to quickly retrieve their author information.">
+    <meta property="og:title" content="Git Author Info">
+    <meta property="og:description" content="Get the Git username and email address for any GitHub user. Enter a GitHub username to quickly retrieve their author information.">
     <meta property="og:type" content="website">
-    <meta property="og:url" content="https://ichard26.github.io/next-pr-number/">
+    <meta property="og:url" content="https://agriyakhetarpal.github.io/git-author-info/">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="Next PR Number">
-    <meta name="twitter:description" content="Get the number the next pull request will be assigned for a public GitHub repository. Forget guessing the number or checking afterhand.">
-    <link rel="canonical" href="https://ichard26.github.io/next-pr-number/">
-    <link rel="icon" href="https://ichard26.github.io/favicon.ico">
-    <link rel="icon" type="image/png" sizes="16x16" href="https://ichard26.github.io/favicon-16x16.png">
-    <link rel="icon" type="image/png" sizes="32x32" href="https://ichard26.github.io/favicon-32x32.png">
+    <meta name="twitter:title" content="Git Author Info">
+    <meta name="twitter:description" content="Get the Git username and email address for any GitHub user. Enter a GitHub username to quickly retrieve their author information.">
+    <link rel="canonical" href="https://agriyakhetarpal.github.io/git-author-info/">
     <script defer type="module" src="main.js"></script>
-    <script defer="" data-domain="ichard26.github.io" src="https://webstats.internal.floralily.dev/js/script.js"></script>
-    <script>window.plausible = window.plausible || function() { (window.plausible.q = window.plausible.q || []).push(arguments) }</script>
 
     <style>
       :root {
@@ -31,6 +26,7 @@
         --primary-light-accent-color: #69c4c7;
         --disabled-accent-color: darkslategray;
         --error-color: #c70101;
+        --success-color: #28a745;
         --admonition-icon: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTEzIDloLTJWN2gybTAgMTBoLTJ2LTZoMm0tMS05QTEwIDEwIDAgMCAwIDIgMTJhMTAgMTAgMCAwIDAgMTAgMTAgMTAgMTAgMCAwIDAgMTAtMTBBMTAgMTAgMCAwIDAgMTIgMnoiLz48L3N2Zz4K");
       }
 
@@ -43,7 +39,7 @@
       body {
         display: flex;
         box-sizing: border-box;
-        max-width: 330px;
+        max-width: 400px;
         padding: 40px 20px 5px 20px;
         margin: 0 auto 0 auto;
         flex-direction: column;
@@ -96,7 +92,6 @@
         left: 0.5rem;
         /* ... and now for the actual icon, gosh that took a lot of preamble. */
         background-color: white;
-        -webkit-mask-image: var(--admonition-icon);
         mask-image: var(--admonition-icon);
       }
 
@@ -104,7 +99,7 @@
         margin: 0.7rem;
       }
 
-      h1, h2, .repo-input, .get-button, .output-text-container, footer {
+      h1, h2, .username-input, .get-button, .output-text-container, footer {
         padding: 10px 15px;
         margin: auto;
         box-sizing: border-box;
@@ -120,23 +115,23 @@
         padding: 15px 0;
       }
 
-      .repo-input, .get-button {
+      .username-input, .get-button {
         width: 100%;
         border: 2px solid var(--primary-accent-color);
         font-size: 1rem;
       }
 
-      .repo-input {
+      .username-input {
         border-bottom-width: 1px;
       }
 
-      .repo-input:read-only, .get-button:disabled {
+      .username-input:read-only, .get-button:disabled {
         transition: filter 300ms, border-color 300ms, color 300ms;
         filter: grayscale(80%);
         border-color: var(--disabled-accent-color);
       }
 
-      .repo-input:read-only {
+      .username-input:read-only {
         color: var(--disabled-accent-color);
         border-bottom: none;
       }
@@ -150,6 +145,7 @@
       .get-button:hover:enabled {
         transition: background-color 250ms;
         background-color: var(--primary-dark-accent-color);
+        cursor: pointer;
       }
 
       .get-button:active {
@@ -162,8 +158,62 @@
       }
 
       .result-text {
-        font-size: 1.4rem;
+        font-size: 0.95rem;
         color: var(--primary-accent-color);
+        word-break: break-all;
+      }
+
+      .author-info {
+        font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Mono', 'Droid Sans Mono', 'Source Code Pro', monospace;
+        background-color: #e8e8e8;
+        padding: 10px;
+        border-radius: 4px;
+        margin: 10px 0;
+        font-size: 0.85rem;
+        text-align: left;
+      }
+
+      .author-info-line {
+        margin: 4px 0;
+        cursor: pointer;
+        padding: 4px;
+        border-radius: 2px;
+        transition: background-color 200ms;
+      }
+
+      .author-info-line:hover {
+        background-color: #d8d8d8;
+      }
+
+      .copy-button {
+        background-color: var(--primary-accent-color);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        font-size: 0.9rem;
+        cursor: pointer;
+        margin-top: 5px;
+        transition: background-color 250ms;
+      }
+
+      .copy-button:hover {
+        background-color: var(--primary-dark-accent-color);
+      }
+
+      .copy-button:active {
+        background-color: var(--primary-light-accent-color);
+      }
+
+      .copy-button.copied {
+        background-color: var(--success-color);
+      }
+
+      .noreply-note {
+        font-size: 0.75rem;
+        color: #666;
+        margin-top: 5px;
+        font-style: italic;
       }
 
       footer {
@@ -199,10 +249,10 @@
 
   <body>
     <main>
-      <h1>Next PR Number</h1>
-      <h2>Get the number the next pull request will be assigned with for a public GitHub repository.</h2>
+      <h1>GitHub Author Info</h1>
+      <h2>Get the Git username and email address for any GitHub user profile.</h2>
       <div class="input-form">
-        <input class="repo-input" placeholder="{owner}/{name} or GitHub URL" type="text" autocapitalize="off" autofocus>
+        <input class="username-input" placeholder="GitHub username" type="text" autocapitalize="off" autofocus>
         <button class="get-button">Get</button>
       </div>
       <div class="output-text-container">
@@ -212,23 +262,24 @@
     </main>
     <footer>
       <p>
-        Design inspired by
-        <a href="https://github.com/Mariatta/check_python_cla">Mariatta's Check Python CLA</a>
+        This website's design was largely inspired by
+        <a href="https://github.com/Mariatta/check_python_cla">Mariatta's "Check Python CLA"</a>
+        and
+        <a href="https://github.com/ichard26/next-pr-number">Richard Si's "Next PR Number"</a>
+        tools.
       </p>
       <hr>
-      <p>© 2023
-        <a href="https://ichard26.github.io/">Richard Si</a>
+      <p>© 2025
+        <a href="https://agriyakhetarpal.github.io/">Agriya Khetarpal</a>
         -
-        <a href="https://github.com/ichard26/next-pr-number">Source</a>
-        -
-        <a href="https://ichard26.github.io/privacy/">Privacy</a>
+        <a href="https://github.com/agriyakhetarpal/git-author-info">Source code</a>
       </p>
     </footer>
     <div id="tip-admonition" class="admonition">
       <p class="admonition-header">Tip!</p>
-      <p class="admonition-body">You can use URL query parameters to prefill the repository. For example:
-        <a href="https://ichard26.github.io/next-pr-number/?owner=ichard26&amp;name=next-pr-number" target="_blank">
-          ichard26.github.io/next-pr-number/?owner=ichard26&amp;name=next-pr-number
+      <p class="admonition-body">You may use URL query parameters to pre-fill the username. For example:
+        <a href="https://agriyakhetarpal.github.io/git-author-info/?username=octocat" target="_blank">
+          agriyakhetarpal.github.io/git-author-info/?username=octocat
         </a>
       </p>
     <div>
