@@ -13,7 +13,7 @@ let working;
 
 const GITHUB_API = "https://api.github.com";
 
-const CACHE_TTL_SECONDS = 3600
+const CACHE_TTL_SECONDS = 3600;
 
 if (typeof window !== "undefined" && window.ls) {
   window.ls.config.ttl = CACHE_TTL_SECONDS;
