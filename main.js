@@ -19,6 +19,35 @@ if (typeof window !== "undefined" && window.ls) {
   window.ls.config.ttl = CACHE_TTL_SECONDS;
 }
 
+/**
+ * Get the cached data for a key.
+ * @param {string} key - Cache key
+ * @returns {*} - Cached value, or null if not found/expired
+ */
+function getCached(key) {
+  try {
+    if (!window.ls) return null;
+    return window.ls.get(key);
+  } catch (err) {
+    console.error("Cache read error:", err);
+    return null;
+  }
+}
+
+/**
+ * Set cached data with TTL.
+ * @param {string} key - Cache key
+ * @param {*} value - Value to cache
+ */
+function setCached(key, value) {
+  try {
+    if (!window.ls) return;
+    window.ls.set(key, value, { ttl: CACHE_TTL_SECONDS });
+  } catch (err) {
+    console.error("Cache write error:", err);
+  }
+}
+
 function sanitizeString(string) {
   const map = {
     "&": "&amp;",
