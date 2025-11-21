@@ -13,6 +13,41 @@ let working;
 
 const GITHUB_API = "https://api.github.com";
 
+const CACHE_TTL_SECONDS = 3600;
+
+if (typeof window !== "undefined" && window.ls) {
+  window.ls.config.ttl = CACHE_TTL_SECONDS;
+}
+
+/**
+ * Get the cached data for a key.
+ * @param {string} key - Cache key
+ * @returns {*} - Cached value, or null if not found/expired
+ */
+function getCached(key) {
+  try {
+    if (!window.ls) return null;
+    return window.ls.get(key);
+  } catch (err) {
+    console.error("Cache read error:", err);
+    return null;
+  }
+}
+
+/**
+ * Set cached data with TTL.
+ * @param {string} key - Cache key
+ * @param {*} value - Value to cache
+ */
+function setCached(key, value) {
+  try {
+    if (!window.ls) return;
+    window.ls.set(key, value, { ttl: CACHE_TTL_SECONDS });
+  } catch (err) {
+    console.error("Cache write error:", err);
+  }
+}
+
 function sanitizeString(string) {
   const map = {
     "&": "&amp;",
@@ -35,12 +70,24 @@ class HTTPError extends Error {
 }
 
 async function getUserInfo(username) {
+
+  const cacheKey = `github_user_${username}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    console.log(`Using cached user info for ${username}`);
+    return cached;
+  }
+
   const response = await fetch(`${GITHUB_API}/users/${username}`);
   const data = await response.json();
   if (!response.ok) {
     console.error("HTTPError", response);
     throw new HTTPError(response.status, data.message || "Unknown error");
   }
+
+  setCached(cacheKey, data);
+  console.log(`Cached user info for ${username}`);
+
   return data;
 }
 
@@ -52,6 +99,14 @@ async function getUserInfo(username) {
  * @returns {Promise<string[]>} - Array of unique email addresses (real ones, not noreply ones).
  */
 async function getCommitEmail(username) {
+
+  const cacheKey = `github_emails_${username}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    console.log(`Using cached commit emails for ${username}`);
+    return cached;
+  }
+
   const emails = new Set();
 
   try {
@@ -121,7 +176,12 @@ async function getCommitEmail(username) {
     console.error("Failed to fetch repos:", err);
   }
 
-  return Array.from(emails);
+  const emailsArray = Array.from(emails);
+
+  setCached(cacheKey, emailsArray);
+  console.log(`Cached commit emails for ${username}`);
+
+  return emailsArray;
 }
 
 /**
