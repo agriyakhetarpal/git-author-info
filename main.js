@@ -70,12 +70,24 @@ class HTTPError extends Error {
 }
 
 async function getUserInfo(username) {
+
+  const cacheKey = `github_user_${username}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    console.log(`Using cached user info for ${username}`);
+    return cached;
+  }
+
   const response = await fetch(`${GITHUB_API}/users/${username}`);
   const data = await response.json();
   if (!response.ok) {
     console.error("HTTPError", response);
     throw new HTTPError(response.status, data.message || "Unknown error");
   }
+
+  setCached(cacheKey, data);
+  console.log(`Cached user info for ${username}`);
+
   return data;
 }
 
