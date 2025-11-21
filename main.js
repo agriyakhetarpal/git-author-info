@@ -99,6 +99,14 @@ async function getUserInfo(username) {
  * @returns {Promise<string[]>} - Array of unique email addresses (real ones, not noreply ones).
  */
 async function getCommitEmail(username) {
+
+  const cacheKey = `github_emails_${username}`;
+  const cached = getCached(cacheKey);
+  if (cached) {
+    console.log(`Using cached commit emails for ${username}`);
+    return cached;
+  }
+
   const emails = new Set();
 
   try {
@@ -168,7 +176,12 @@ async function getCommitEmail(username) {
     console.error("Failed to fetch repos:", err);
   }
 
-  return Array.from(emails);
+  const emailsArray = Array.from(emails);
+
+  setCached(cacheKey, emailsArray);
+  console.log(`Cached commit emails for ${username}`);
+
+  return emailsArray;
 }
 
 /**
