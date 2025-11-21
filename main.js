@@ -124,13 +124,51 @@ async function getCommitEmail(username) {
   return Array.from(emails);
 }
 
+/**
+ * Extract the username from a GitHub URL, or return the input as-is, if it's already one.
+ * We can handle URLs like the following:
+ * - https://github.com/username
+ * - http://github.com/username
+ * - github.com/username
+ * - https://github.com/username/repo
+ * @param {string} input - The user input (URL or username).
+ * @returns {string} - The extracted username.
+ */
+function extractUsername(input) {
+  const trimmedInput = input.trim();
+  if (trimmedInput.includes("github.com")) {
+    try {
+      let url;
+      if (
+        trimmedInput.startsWith("http://") ||
+        trimmedInput.startsWith("https://")
+      ) {
+        url = new URL(trimmedInput);
+      } else {
+        url = new URL("https://" + trimmedInput);
+      }
+      const pathSegments = url.pathname
+        .split("/")
+        .filter((segment) => segment.length > 0);
+      if (pathSegments.length > 0) {
+        return pathSegments[0];
+      }
+    } catch (err) {
+      console.error("Failed to parse URL:", err);
+    }
+  }
+
+  return trimmedInput;
+}
+
 function checkInputValidity() {
-  if (!validUsernameRegex.test(usernameInput.value)) {
+  const username = extractUsername(usernameInput.value);
+  if (!validUsernameRegex.test(username)) {
     let msg;
     if (!usernameInput.value.length) {
-      msg = "Please enter a GitHub username";
+      msg = "Please enter a GitHub username or URL";
     } else {
-      msg = "Invalid username";
+      msg = "Invalid username or URL";
     }
     usernameInput.setCustomValidity(msg);
     usernameInput.reportValidity();
@@ -258,7 +296,9 @@ function createResultHTML(userData, commitEmails) {
     html += `<p class="noreply-note">No public email address was found from recent commits. Here's their GitHub noreply address.</p>`;
   } else if (commitEmails && commitEmails.length > 0) {
     html += `<p class="noreply-note">${
-      hasMultiple ? "These email addresses were found" : "This email address was found"
+      hasMultiple
+        ? "These email addresses were found"
+        : "This email address was found"
     } from their recent commits.</p>`;
   }
 
@@ -280,7 +320,7 @@ async function onSubmit() {
   if (!checkInputValidity()) {
     return;
   }
-  const username = usernameInput.value.trim();
+  const username = extractUsername(usernameInput.value);
   resetOutputStatus();
   setWorkingStatus();
   let resultString;
@@ -349,6 +389,7 @@ function maybeUseUsernameFromURL() {
   if (username === null) {
     return;
   }
+  username = extractUsername(username);
   usernameInput.blur();
   const tipAdmonition = document.querySelector("#tip-admonition");
   if (tipAdmonition) {
